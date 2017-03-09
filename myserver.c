@@ -203,7 +203,7 @@ void updateTrans(char *username,int choice,double balance)
 	FILE *fp=fopen(username,"r");
 	char * line = NULL;
 	char c=(choice==1)?'C':'D';
-	char *line1=(char *)malloc(sizeof(char)*100);
+	char *line1=(char *)malloc(sizeof(char)*10000);
     size_t len = 0;
     ssize_t read;
 	time_t ltime; /* calendar time */
@@ -216,7 +216,7 @@ void updateTrans(char *username,int choice,double balance)
 
 	fclose(fp);
 	fp=fopen(username,"w");
-	fputs(line1,fp);
+	fwrite(line1, sizeof(char), strlen(line1), fp);
 	fclose(fp);
 }
 
@@ -246,7 +246,7 @@ int query(char *username, int client_fd)
 					char *buff=recieveMsgFromClient(client_fd);
 					double amount=strtod(buff,NULL);
 					// printf("%f",amount);
-					if(amount==0)
+					if(amount<=0)
 						sendMsgtoClient(client_fd,"Enter valid amount");
 					else
 					{
@@ -257,13 +257,9 @@ int query(char *username, int client_fd)
 							break;
 						}
 						else if(choice==2)
-						{
 							balance-=amount;
-						}
 						else if(choice==1)
-						{
 							balance +=amount;
-						}
 
 						updateTrans(username,choice,balance);
 						sendMsgtoClient(client_fd,"User updated successfully.\nEnter username of the account holder or 'exit' to quit.");
