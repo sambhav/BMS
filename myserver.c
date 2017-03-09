@@ -205,28 +205,28 @@ int authorize(char* username,char *password)
 			if(strcmp(token,password)==0)
 			{
 				token=strtok(NULL," ");
-				if(strcmp(token, "C\n") == 0)
-				{
+                if(token[0]=='C')
+                {
 					fclose(fp);
-				    return USER;    //return the user type
-				}
-				else if(strcmp(token, "A\n") == 0)
-				{
-					fclose(fp);
-				    return ADMIN;
-				}
-				else if(strcmp(token, "P\n") == 0)
-				{
-					fclose(fp);
-				    return POLICE;
-				}
-			}
-		}
-	}
-	if(line!=NULL)
-		free(line);
+                    return USER;    //return the user type
+                }
+                else if(token[0]=='A')
+                {
+                    fclose(fp);
+                    return ADMIN;
+                }
+                else if(token[0]=='P')
+                {
+                    fclose(fp);
+                    return POLICE;
+                }
+            }
+        }
+    }
+    if(line!=NULL)
+        free(line);
 
-	fclose(fp);
+    fclose(fp);
 	return UNAUTH_USER;
 }
 
