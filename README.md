@@ -1,3 +1,5 @@
+![Build Status](https://api.travis-ci.org/samj1912/BMS.svg?branch=master)
+
 # BMS
 A simple Banking Management System using unix sockets
 
