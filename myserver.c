@@ -77,38 +77,34 @@ void getupcli(char *username,char *password,int client_fd)
 
 void printMiniStatement(char *username,int client_fd)
 {
-	FILE *fp=fopen(username,"r");
+	FILE *fp = fopen(username,"r");
 
-	char *ms=NULL;
+	char *miniStatement = NULL;
 
-	ms=(char *)malloc(10000*sizeof(char));
+    // Initializing miniStatement to a blank char.
+	miniStatement = (char *)malloc(10000*sizeof(char));
+    miniStatement[0] = '\0';
 
-	char * line = NULL;
+    char * line = NULL;
     size_t len = 0;
     ssize_t read;
-    char *ims=ms;
-	int count=0;
-    ms[0] = '\0';
+    int count=0;
 
 	while(count<linesInMS && (read = getline(&line, &len, fp)) != -1)
 	{
-		strcat(ms,line);
-        printf("%s\n", ms);
+		strcat(miniStatement,line);
 		count++;
 
 	}
+
 	fclose(fp);
 
-    if(strlen(ms)==0)
-    {
+    if(strlen(miniStatement)==0)
         sendMsgtoClient(client_fd, "None");
-    }
     else
-    {
-        sendMsgtoClient(client_fd, ms);
-    }
-    free(ms);
+        sendMsgtoClient(client_fd, miniStatement);
 
+    free(miniStatement);
 }
 
 char *printBalance(char *username)
