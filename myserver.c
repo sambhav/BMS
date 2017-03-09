@@ -81,41 +81,34 @@ void printMiniStatement(char *username,int client_fd)
 
 	char *ms=NULL;
 
-	ms=(char *)malloc(1000*sizeof(char));
+	ms=(char *)malloc(10000*sizeof(char));
 
 	char * line = NULL;
     size_t len = 0;
     ssize_t read;
     char *ims=ms;
 	int count=0;
+    ms[0] = '\0';
 
 	while(count<linesInMS && (read = getline(&line, &len, fp)) != -1)
 	{
-		memcpy(ms,line,strlen(line));
-		ms+=strlen(line);
+		strcat(ms,line);
+        printf("%s\n", ms);
 		count++;
 
 	}
-
-	if(strlen(ims)==0)
-	{
-	    sendMsgtoClient(client_fd, "None");
-	}
-	else
-	{
-		ims[strlen(ims)-1]='\0';
-	    sendMsgtoClient(client_fd, ims);
-	}
-
-
-	// print=f("%s",ms);
-	// free(ms);
-
-	// if(ms!=NULL)
-	// 	free(ms);
-	// if(ims!=NULL)
-	// 	free(ims);
 	fclose(fp);
+
+    if(strlen(ms)==0)
+    {
+        sendMsgtoClient(client_fd, "None");
+    }
+    else
+    {
+        sendMsgtoClient(client_fd, ms);
+    }
+    free(ms);
+
 }
 
 char *printBalance(char *username)
