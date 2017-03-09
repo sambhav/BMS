@@ -77,7 +77,7 @@ void getupcli(char *username,char *password,int client_fd)
 }
 
 
-void printMiniStatement(char *username,int client_fd)
+char *printMiniStatement(char *username,int client_fd)
 {
 	FILE *fp = fopen(username,"r");
 
@@ -96,17 +96,11 @@ void printMiniStatement(char *username,int client_fd)
 	{
 		strcat(miniStatement,line);
 		count++;
-
 	}
 
 	fclose(fp);
 
-    if(strlen(miniStatement)==0)
-        sendMsgtoClient(client_fd, "None");
-    else
-        sendMsgtoClient(client_fd, miniStatement);
-
-    free(miniStatement);
+	return (strlen(miniStatement)==0)?"None":miniStatement;
 }
 
 char *printBalance(char *username)
@@ -154,7 +148,7 @@ void userRequests(char *username,char *password,int client_fd)
 			choice=3;
 		else
 		    choice=atoi(buff);
-		char *bal;
+		char *bal,*str;
 		switch(choice)
 		{
 			case 1:
@@ -162,7 +156,9 @@ void userRequests(char *username,char *password,int client_fd)
 				sendMsgtoClient(client_fd,bal);
 				break;
 			case 2:
-				printMiniStatement(username,client_fd);
+				str=printMiniStatement(username,client_fd);
+				sendMsgtoClient(client_fd,strcat(str,"\nEnter your choice\n1. Available Balance\n2. Mini Statement\nWrite exit for quitting."));
+				free(str);
 				break;
 			case 3:
 				flag=0;
@@ -301,9 +297,80 @@ void adminRequests(int client_fd)
 
 }
 
-void policeRequests(char *username,char *password,int client_fd)
-{
 
+char * getBalanceAll()
+{
+	FILE *fp=fopen("login_file","r");
+	char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    char *retstr=(char *)malloc(10000*sizeof(char));
+    retstr[0]='\0';
+
+	while((read = getline(&line, &len, fp)) != -1) 
+	{
+		char *token=strtok(line," ");
+		char *token1=strtok(NULL," ");
+		char *token2=strtok(NULL," ");
+		if(token2[0]=='C')
+		{
+			strcat(retstr,token);
+			strcat(retstr," ");
+			strcat(retstr,printBalance(token));
+			strcat(retstr,"\n");
+        }
+    }
+
+    return retstr;
+
+}	
+
+void policeRequests(int client_fd)
+{
+	sendMsgtoClient(client_fd, "Enter your choice\n1. Print Balance of all users\n2. Get mini Statement\nWrite exit to terminate");
+	int flag=1;
+
+	while(flag)
+	{
+		char *buff=NULL;
+		buff=recieveMsgFromClient(client_fd);
+		if(strcmp(buff,"exit")==0)
+			break;
+		else
+		{
+			int choice=atoi(buff);
+			if(choice==1)
+			{
+				char *str=getBalanceAll();
+				sendMsgtoClient(client_fd,strcat(str,"\nEnter your choice\n1. Print Balance of all users\n2. Get mini Statement\nWrite exit to terminate"));
+			}
+			else if(choice==2)
+			{
+				sendMsgtoClient(client_fd,"Enter Username or exit to terminate");
+
+				while(1)
+				{
+					buff=recieveMsgFromClient(client_fd);
+
+					if(strcmp(buff,"exit")==0)
+					{
+						flag=1;
+						break;
+					}
+					else if(checkUser(buff))
+					{
+						char *username=(char *)malloc(sizeof(char)*40);
+						strcpy(username,buff);
+						char *str=printMiniStatement(username,client_fd);
+						sendMsgtoClient(client_fd,strcat(str,"\nEnter your choice\n1. Print Balance of all users\n2. Get mini Statement\nWrite exit to terminate"));
+						break;
+					}
+					else
+						sendMsgtoClient(client_fd,"Wrong Username. Please enter a valid user");
+				}
+			}
+		}
+	}
 }
 
 int authorize(char* username,char *password)
@@ -383,7 +450,7 @@ void talkToClient(int client_fd)
 			closeclient(client_fd,"Thanks Admin");
 			break;	
 		case POLICE:
-			policeRequests(username,password,client_fd);
+			policeRequests(client_fd);
 			closeclient(client_fd,"Thanks Police");
 			break;	
 		case UNAUTH_USER:
