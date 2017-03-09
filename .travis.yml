@@ -1,0 +1,6 @@
+language: C 
+compiler: gcc 
+script:
+  - gcc myserver.c -o myserver
+  - gcc myclient.c -o myclient
+  
